@@ -22,7 +22,7 @@ func main() {
 	// Create a new store
 	resp, err := fgaClient.CreateStore(context.Background()).
 		Body(ClientCreateStoreRequest{
-			Name: "Document Management System udpated",
+			Name: "Document Management System",
 		}).Execute()
 
 	// Store the store ID for future use
@@ -33,123 +33,123 @@ func main() {
 
 	// Configure our authorization model
 	var authModelString = `{
-  "schema_version": "1.1",
-  "type_definitions": [
-    {
-      "type": "user",
-      "relations": {},
-      "metadata": null
-    },
-    {
-      "type": "team",
-      "relations": {
-        "member": {
-          "this": {}
-        },
-        "department": {
-          "this": {}
-        }
-      },
-      "metadata": {
-        "relations": {
-          "member": {
-            "directly_related_user_types": [
-              {
-                "type": "user"
-              }
-            ]
-          },
-          "department": {
-            "directly_related_user_types": [
-              {
-                "type": "department"
-              }
-            ]
-          }
-        }
-      }
-    },
-    {
-      "type": "department",
-      "relations": {
-        "member": {
-          "tupleToUserset": {
-            "computedUserset": {
-              "relation": "member"
-            },
-            "tupleset": {
-              "relation": "team"
-            }
-          }
-        },
-        "team": {
-          "this": {}
-        }
-      },
-      "metadata": {
-        "relations": {
-          "member": {
-            "directly_related_user_types": []
-          },
-          "team": {
-            "directly_related_user_types": [
-              {
-                "type": "team"
-              }
-            ]
-          }
-        }
-      }
-    },
-    {
-      "type": "document",
-      "relations": {
-        "owner": {
-          "this": {}
-        },
-        "editor": {
-          "union": {
-            "child": [
-              {
-                "this": {}
-              },
-              {
-                "computedUserset": {
-                  "relation": "owner"
-                }
-              }
-            ]
-          }
-        }
-      },
-      "metadata": {
-        "relations": {
-          "owner": {
-            "directly_related_user_types": [
-              {
-                "type": "user"
-              }
-            ]
-          },
-          "editor": {
-            "directly_related_user_types": [
-              {
-                "type": "user"
-              },
-              {
-                "type": "team",
-                "relation": "member"
-              },
-              {
-                "type": "department",
-                "relation": "member"
-              }
-            ]
-          }
-        }
-      }
-    }
-  ]
+		  "schema_version": "1.1",
+		  "type_definitions": [
+			{
+			  "type": "user",
+			  "relations": {},
+			  "metadata": null
+			},
+			{
+			  "type": "team",
+			  "relations": {
+				"member": {
+				  "this": {}
+				},
+				"department": {
+				  "this": {}
+				}
+			  },
+			  "metadata": {
+				"relations": {
+				  "member": {
+					"directly_related_user_types": [
+					  {
+						"type": "user"
+					  }
+					]
+				  },
+				  "department": {
+					"directly_related_user_types": [
+					  {
+						"type": "department"
+					  }
+					]
+				  }
+				}
+			  }
+			},
+			{
+			  "type": "department",
+			  "relations": {
+				"member": {
+				  "tupleToUserset": {
+					"computedUserset": {
+					  "relation": "member"
+					},
+					"tupleset": {
+					  "relation": "team"
+					}
+				  }
+				},
+				"team": {
+				  "this": {}
+				}
+			  },
+			  "metadata": {
+				"relations": {
+				  "member": {
+					"directly_related_user_types": []
+				  },
+				  "team": {
+					"directly_related_user_types": [
+					  {
+						"type": "team"
+					  }
+					]
+				  }
+				}
+			  }
+			},
+			{
+			  "type": "document",
+			  "relations": {
+				"owner": {
+				  "this": {}
+				},
+				"editor": {
+				  "union": {
+					"child": [
+					  {
+						"this": {}
+					  },
+					  {
+						"computedUserset": {
+						  "relation": "owner"
+						}
+					  }
+					]
+				  }
+				}
+			  },
+			  "metadata": {
+				"relations": {
+				  "owner": {
+					"directly_related_user_types": [
+					  {
+						"type": "user"
+					  }
+					]
+				  },
+				  "editor": {
+					"directly_related_user_types": [
+					  {
+						"type": "user"
+					  },
+					  {
+						"type": "team",
+						"relation": "member"
+					  },
+					  {
+						"type": "department",
+						"relation": "member"
+					  }
+					]
+				  }
+				}
+			  }
+			}
+		  ]
 }`
 
 	var body openfga.WriteAuthorizationModelRequest
@@ -240,6 +240,15 @@ func main() {
 		Options(checkOptions).
 		Execute()
 	fmt.Printf("Can Bob edit doc-003? %v\n", *checkData.Allowed) // false
+
+	// Can Alice edit doc-001?
+	checkBody.User = "user:alice"
+	checkBody.Object = "document:doc-001"
+	checkData, err = fgaClient.Check(context.Background()).
+		Body(checkBody).
+		Options(checkOptions).
+		Execute()
+	fmt.Printf("Can Alice edit doc-001? %v\n", *checkData.Allowed) // true
 
 	// other than check you can issue query operations like the following
 	// to get the list of documents that Bob can edit

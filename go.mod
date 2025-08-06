@@ -1,4 +1,4 @@
-module isurucuma/fga-article
+module github.com/isurucuma/fga-tutorial
 
 go 1.24.3
 
